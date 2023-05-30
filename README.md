@@ -1,57 +1,8 @@
-# Project Name
+# Vector Similarity Search with Azure SQL & Azure OpenAI
 
-(short, 1-3 sentenced, description of the project)
+This example shows how to use Azure OpenAI from Azure SQL database to get the vector embeddings of any choose text, and then calculate the cosine distance against the Wikipedia articles (for which vector embeddings have been already calculated) to find the articles that covers topics that are close - or similar - to the searched text.
 
-## Features
+Azure SQL database can be used to significatly speed up vectors operations using column store indexes, so that search can have sub-seconds performances even on large datasets.
 
-This project framework provides the following features:
+Download the [wikipedia embeedings from here](https://cdn.openai.com/API/examples/data/vector_database_wikipedia_articles_embedded.zip), unzip it and upload it to an Azure Blob Storage container.
 
-* Feature 1
-* Feature 2
-* ...
-
-## Getting Started
-
-### Prerequisites
-
-(ideally very short, if any)
-
-- OS
-- Library version
-- ...
-
-### Installation
-
-(ideally very short)
-
-- npm install [package name]
-- mvn install
-- ...
-
-### Quickstart
-(Add steps to get up and running quickly)
-
-1. git clone [repository clone url]
-2. cd [repository name]
-3. ...
-
-
-## Demo
-
-A demo app is included to show how to use the project.
-
-To run the demo, follow these steps:
-
-(Add steps to start up the demo)
-
-1.
-2.
-3.
-
-## Resources
-
-(Any additional resources or related projects)
-
-- Link to supporting information
-- Link to similar sample
-- ...
