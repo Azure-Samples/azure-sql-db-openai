@@ -26,13 +26,13 @@ go
 */
 create database scoped credential [openai_playground]
 with identity = 'SHARED ACCESS SIGNATURE',
-secret = '<sas-token';
+secret = '<sas-token>';
 go
 create external data source [openai_playground]
 with 
 ( 
 	type = blob_storage,
- 	location = 'https://dmstore3.blob.core.windows.net/playground',
+ 	location = 'https://<account>.blob.core.windows.net/playground',
  	credential = [openai_playground]
 );
 go
