@@ -1,13 +1,24 @@
 /*
+    Create database credentials to store API key
+*/
+if exists(select * from sys.[database_scoped_credentials] where name = 'https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>')
+begin
+	drop database scoped credential [https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>];
+end
+create database scoped credential [https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>]
+with identity = 'HTTPEndpointHeaders', secret = '{"api-key": "<api-key>"}';
+go
+
+/*
     Get the embeddings for the input text by calling the OpenAI API
 */
 declare @inputText nvarchar(max) = 'the foundation series by isaac asimov';
 declare @retval int, @response nvarchar(max);
 declare @payload nvarchar(max) = json_object('input': @inputText);
 exec @retval = sp_invoke_external_rest_endpoint
-    @url = 'https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>/embeddings?api-version=2023-03-15-preview',
+    @url = 'https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>?api-version=2023-03-15-preview',
     @method = 'POST',
-    @headers = '{"api-key":"<api-key>"}',
+    @credential = [https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>],
     @payload = @payload,
     @response = @response output;
 drop table if exists #response;
