@@ -1,8 +1,4 @@
 /*
-	SETUP
-*/
-
-/*
 	Cleanup if needed
 */
 if not exists(select * from sys.symmetric_keys where [name] = '##MS_DatabaseMasterKey##')
@@ -26,7 +22,7 @@ go
 */
 create database scoped credential [openai_playground]
 with identity = 'SHARED ACCESS SIGNATURE',
-secret = '<sas-token>';
+secret = '<sas-token>'; -- make sure not to include the ? at the beginning
 go
 create external data source [openai_playground]
 with 

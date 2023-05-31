@@ -5,9 +5,9 @@ declare @inputText nvarchar(max) = 'the foundation series by isaac asimov';
 declare @retval int, @response nvarchar(max);
 declare @payload nvarchar(max) = json_object('input': @inputText);
 exec @retval = sp_invoke_external_rest_endpoint
-    @url = 'https://dm-open-ai.openai.azure.com/openai/deployments/embeddings/embeddings?api-version=2023-03-15-preview',
+    @url = 'https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>/embeddings?api-version=2023-03-15-preview',
     @method = 'POST',
-    @headers = '{"api-key":"7194a8c183be4cd08c514834f4e985ea"}',
+    @headers = '{"api-key":"<api-key>"}',
     @payload = @payload,
     @response = @response output;
 drop table if exists #response;
