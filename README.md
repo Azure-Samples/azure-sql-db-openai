@@ -4,6 +4,8 @@ This example shows how to use Azure OpenAI from Azure SQL database to get the ve
 
 Azure SQL database can be used to significatly speed up vectors operations using column store indexes, so that search can have sub-seconds performances even on large datasets.
 
+![](_assets/cosine-similarity-search-result.png)
+
 ## Download and import the Wikipedia Article with Vector Embeddings
 
 Download the [wikipedia embeedings from here](https://cdn.openai.com/API/examples/data/vector_database_wikipedia_articles_embedded.zip), unzip it and upload it (using [Azure Storage Explorer](https://learn.microsoft.com/en-us/azure/vs-azure-tools-storage-manage-with-storage-explorer?tabs=windows) for example) to an Azure Blob Storage container.
