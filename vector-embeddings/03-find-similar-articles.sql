@@ -1,11 +1,11 @@
 /*
     Create database credentials to store API key
 */
-if exists(select * from sys.[database_scoped_credentials] where name = 'https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>')
+if exists(select * from sys.[database_scoped_credentials] where name = 'https://<your-app-name>.openai.azure.com')
 begin
-	drop database scoped credential [https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>];
+	drop database scoped credential [https://<your-app-name>.openai.azure.com];
 end
-create database scoped credential [https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>]
+create database scoped credential [https://<your-app-name>.openai.azure.com]
 with identity = 'HTTPEndpointHeaders', secret = '{"api-key": "<api-key>"}';
 go
 
@@ -18,7 +18,7 @@ declare @payload nvarchar(max) = json_object('input': @inputText);
 exec @retval = sp_invoke_external_rest_endpoint
     @url = 'https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>?api-version=2023-03-15-preview',
     @method = 'POST',
-    @credential = [https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>],
+    @credential = [https://<your-app-name>.openai.azure.com],
     @payload = @payload,
     @response = @response output;
 drop table if exists #response;
@@ -48,11 +48,11 @@ go
 drop table if exists #results;
 select top(50)
     v2.article_id, 
-    SUM(v1.[vector_value] * v2.[vector_value]) / 
+    sum(v1.[vector_value] * v2.[vector_value]) / 
         (
-            SQRT(SUM(v1.[vector_value] * v1.[vector_value])) 
+            sqrt(sum(v1.[vector_value] * v1.[vector_value])) 
             * 
-            SQRT(SUM(v2.[vector_value] * v2.[vector_value]))
+            sqrt(sum(v2.[vector_value] * v2.[vector_value]))
         ) as cosine_distance
 into
     #results

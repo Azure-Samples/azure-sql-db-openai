@@ -398,4 +398,5 @@ FodyWeavers.xsd
 *.sln.iml
 
 # Customer
-readme.local.txt
+*.local.txt
+*.local.sql
