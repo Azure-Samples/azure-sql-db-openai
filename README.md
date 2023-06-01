@@ -1,6 +1,6 @@
-# Vector Similarity Search with Azure SQL & Azure OpenAI
+# Vector similarity search with Azure SQL & Azure OpenAI
 
-This example shows how to use Azure OpenAI from Azure SQL database to get the vector embeddings of any choose text, and then calculate the cosine distance against the Wikipedia articles (for which vector embeddings have been already calculated,) to find the articles that covers topics that are close - or similar - to the searched text.
+This example shows how to use Azure OpenAI from Azure SQL database to get the vector embeddings of any choosen text, and then calculate the [cosine similarity](https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview) against the Wikipedia articles (for which vector embeddings have been already calculated,) to find the articles that covers topics that are close - or similar - to the provided text.
 
 Azure SQL database can be used to significatly speed up vectors operations using column store indexes, so that search can have sub-seconds performances even on large datasets.
 
@@ -8,15 +8,11 @@ Azure SQL database can be used to significatly speed up vectors operations using
 
 Download the [wikipedia embeedings from here](https://cdn.openai.com/API/examples/data/vector_database_wikipedia_articles_embedded.zip), unzip it and upload it (using [Azure Storage Explorer](https://learn.microsoft.com/en-us/azure/vs-azure-tools-storage-manage-with-storage-explorer?tabs=windows) for example) to an Azure Blob Storage container.
 
-In the example the unzipped csv file to `vector_database_wikipedia_articles_embedded.csv` is assumed to be upload to a blob container name `playground` and in a folder named `wikipedia`:
+In the example the unzipped csv file to `vector_database_wikipedia_articles_embedded.csv` is assumed to be uploaded to a blob container name `playground` and in a folder named `wikipedia`.
 
-```
-https://<myaccount>.blob.core.windows.net/playground/wikipedia/vector_database_wikipedia_articles_embedded.csv
-```
+Once the file is uploaded, get the [SAS token](https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview) to allow Azure SQL database to access it. (From Azure storage Explorer, right click on the `playground` container and than select `Get Shared Access Signature`. Set the expiration date to some time in future and then click on "Create". Copy the generated query string somewhere, for example into the Notepad, as it will be needed later)
 
-Once the file is uploaded, get the SAS token to allow Azure SQL database to access it. (From Azure storage Explorer, right click on the `playground` container and than select `Get Shared Access Signature`. Set the expiration date to some time in future and then click on "Create". Copy the generated query string somewhere, for example into the Notepad, as it will be needed later)
-
-Use a client tool like Azure Data Studio to connect to an Azure SQL database and then use the `./vector-embeddings/01-import-wikipedia.sql` to create the `wikipedia_articles_embeddings` where the uploaded CSV file will be imported.
+Use a client tool like [Azure Data Studio](https://azure.microsoft.com/en-us/products/data-studio/) to connect to an Azure SQL database and then use the `./vector-embeddings/01-import-wikipedia.sql` to create the `wikipedia_articles_embeddings` where the uploaded CSV file will be imported.
 
 Make sure to replace the `<account>` and `<sas-token>` placeholders with the value correct for your environment:
 
@@ -27,7 +23,7 @@ Run each section (each section starts with a comment) separately. At the end of 
 
 ## Create Vectors Table
 
-In the imported data, vectors are stored as JSON arrays. To take advtange of vector processing, the arrays must be saved into a columnstore index. Thanks to `OPENJSON` turning a vector into a set of values that can be saved into a column is very easy:
+In the imported data, vectors are stored as JSON arrays. To take advtange of vector processing, the arrays must be saved into a columnstore index. Thanks to `OPENJSON`, turning a vector into a set of values that can be saved into a column is very easy:
 
 ```sql
  select 
@@ -75,7 +71,7 @@ from
     openjson(@response, '$.result.data[0].embedding')
 ```
 
-Now is just a matter of taking the vector of the sample text and the vectors of all wikipedia articles and calculate the cosine distance. The math can be easily expressed in T-SQL:
+Now is just a matter of taking the vector of the sample text and the vectors of all wikipedia articles and calculate the cosine similarity. The math can be easily expressed in T-SQL:
 
 ```sql
 SUM(v1.[vector_value] * v2.[vector_value]) / 

@@ -18,7 +18,9 @@ end
 go
 
 /*
-	Create database scoped credential and external data source
+	Create database scoped credential and external data source.
+	File is assumed to be in a path like: 
+	https://<myaccount>.blob.core.windows.net/playground/wikipedia/vector_database_wikipedia_articles_embedded.csv
 */
 create database scoped credential [openai_playground]
 with identity = 'SHARED ACCESS SIGNATURE',
