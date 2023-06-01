@@ -10,13 +10,13 @@ Azure SQL database can be used to significatly speed up vectors operations using
 
 ## Download and import the Wikipedia Article with Vector Embeddings
 
-Download the [wikipedia embeedings from here](https://cdn.openai.com/API/examples/data/vector_database_wikipedia_articles_embedded.zip), unzip it and upload it (using [Azure Storage Explorer](https://learn.microsoft.com/en-us/azure/vs-azure-tools-storage-manage-with-storage-explorer?tabs=windows) for example) to an Azure Blob Storage container.
+Download the [wikipedia embeedings from here](https://cdn.openai.com/API/examples/data/vector_database_wikipedia_articles_embedded.zip), unzip it and upload it (using [Azure Storage Explorer](https://learn.microsoft.com/azure/vs-azure-tools-storage-manage-with-storage-explorer?tabs=windows) for example) to an Azure Blob Storage container.
 
 In the example the unzipped csv file to `vector_database_wikipedia_articles_embedded.csv` is assumed to be uploaded to a blob container name `playground` and in a folder named `wikipedia`.
 
-Once the file is uploaded, get the [SAS token](https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview) to allow Azure SQL database to access it. (From Azure storage Explorer, right click on the `playground` container and than select `Get Shared Access Signature`. Set the expiration date to some time in future and then click on "Create". Copy the generated query string somewhere, for example into the Notepad, as it will be needed later)
+Once the file is uploaded, get the [SAS token](https://learn.microsoft.com/azure/storage/common/storage-sas-overview) to allow Azure SQL database to access it. (From Azure storage Explorer, right click on the `playground` container and than select `Get Shared Access Signature`. Set the expiration date to some time in future and then click on "Create". Copy the generated query string somewhere, for example into the Notepad, as it will be needed later)
 
-Use a client tool like [Azure Data Studio](https://azure.microsoft.com/en-us/products/data-studio/) to connect to an Azure SQL database and then use the `./vector-embeddings/01-import-wikipedia.sql` to create the `wikipedia_articles_embeddings` where the uploaded CSV file will be imported.
+Use a client tool like [Azure Data Studio](https://azure.microsoft.com/products/data-studio/) to connect to an Azure SQL database and then use the `./vector-embeddings/01-import-wikipedia.sql` to create the `wikipedia_articles_embeddings` where the uploaded CSV file will be imported.
 
 Make sure to replace the `<account>` and `<sas-token>` placeholders with the value correct for your environment:
 
@@ -46,9 +46,9 @@ The script `./vector-embeddings/02-create-vectors-table.sql` does exactly that. 
 
 The third script `./vector-embeddings/03-find-similar-articles.sql` starts invoking OpenAI to get the vector embeddings of an arbitrary text. 
 
-Make sure to have an Azure OpenAI [embeddings model](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/concepts/models#embeddings-models) deployed and make sure it is using the `text-embedding-ada-002` model.
+Make sure to have an Azure OpenAI [embeddings model](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models#embeddings-models) deployed and make sure it is using the `text-embedding-ada-002` model.
 
-Once the Azure OpenAI model is deployed, it can be called from Azure SQL database, to get the embedding vector for the "the foundation series by isaac asimov", text, for example, using the following code (make sure to replace the <api-key> with yout Azure OpenAI deployment):
+Once the Azure OpenAI model is deployed, it can be called from Azure SQL database using [sp_invoke_external_rest_endpoint](https://learn.microsoft.com/sql/relational-databases/system-stored-procedures/sp-invoke-external-rest-endpoint-transact-sql), to get the embedding vector for the "the foundation series by isaac asimov", text, for example, using the following code (make sure to replace the <api-key> with yout Azure OpenAI deployment):
 
 ```sql
 declare @inputText nvarchar(max) = 'the foundation series by isaac asimov';
