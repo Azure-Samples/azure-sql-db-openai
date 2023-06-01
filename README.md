@@ -42,7 +42,7 @@ cross apply
 
 The script `./vector-embeddings/02-create-vectors-table.sql` does exactly that. It creates two tables, one for the title embeddings and one for the content embeddings, and the creates a clustered columnstore on those tables to enable efficient vector processing.
 
-## Find similar articles calculating cosine distance
+## Find similar articles by calculating cosine distance
 
 The third script `./vector-embeddings/03-find-similar-articles.sql` starts invoking OpenAI to get the vector embeddings of an arbitrary text. 
 
