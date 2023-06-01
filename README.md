@@ -6,7 +6,7 @@ For an introduction on text and code embeddings, check out this OpenAI article: 
 
 Azure SQL database can be used to significatly speed up vectors operations using column store indexes, so that search can have sub-seconds performances even on large datasets.
 
-![](_assets/azure-sql-cosine-similarity.png)
+![](_assets/azure-sql-cosine-similarity.gif)
 
 ## Download and import the Wikipedia Article with Vector Embeddings
 
