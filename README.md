@@ -1,3 +1,16 @@
+---
+page_type: sample
+languages:
+- sql
+products:
+- azure-openai
+- azure-sql-database
+urlFragment: azure-sql-db-openai
+name: Vector similarity search with Azure SQL & Azure OpenAI
+description: |
+  Use Azure OpenAI from Azure SQL database to get the vector embeddings of any choosen text, and then calculate the cosine similarity to find related topics
+---
+
 # Vector similarity search with Azure SQL & Azure OpenAI
 
 This example shows how to use Azure OpenAI from Azure SQL database to get the vector embeddings of any choosen text, and then calculate the [cosine similarity](https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview) against the Wikipedia articles (for which vector embeddings have been already calculated,) to find the articles that covers topics that are close - or similar - to the provided text.
