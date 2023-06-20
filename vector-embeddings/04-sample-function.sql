@@ -16,12 +16,7 @@ cteSimilar as
 (
 select top (50)
     v2.article_id, 
-    sum(v1.[vector_value] * v2.[vector_value]) / 
-        (
-            sqrt(sum(v1.[vector_value] * v1.[vector_value])) 
-            * 
-            sqrt(sum(v2.[vector_value] * v2.[vector_value]))
-        ) as cosine_distance
+    sum(v1.[vector_value] * v2.[vector_value]) as cosine_distance -- Optimized as per https://platform.openai.com/docs/guides/embeddings/which-distance-function-should-i-use
 from 
     cteVector v1
 inner join 

@@ -77,3 +77,36 @@ inner join
 order by
     cosine_distance desc;
 go
+
+
+/* 
+    Optimization: since vectors are normalized (as per OpenAI documentation: https://platform.openai.com/docs/guides/embeddings/which-distance-function-should-i-use),
+    we can simplify the cosine distance calculation by removing magnitude calculation
+*/
+drop table if exists #results;
+select top(50)
+    v2.article_id, 
+    sum(v1.[vector_value] * v2.[vector_value]) as cosine_distance
+into
+    #results
+from 
+    #t v1
+inner join 
+    dbo.wikipedia_articles_embeddings_contents_vector v2 on v1.vector_value_id = v2.vector_value_id
+group by
+    v2.article_id
+order by
+    cosine_distance desc;
+
+select 
+    a.id,
+    a.title,
+    a.url,
+    r.cosine_distance
+from 
+    #results r
+inner join 
+    dbo.wikipedia_articles_embeddings a on r.article_id = a.id
+order by
+    cosine_distance desc;
+go
