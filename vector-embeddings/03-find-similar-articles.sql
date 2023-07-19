@@ -16,7 +16,7 @@ declare @inputText nvarchar(max) = 'the foundation series by isaac asimov';
 declare @retval int, @response nvarchar(max);
 declare @payload nvarchar(max) = json_object('input': @inputText);
 exec @retval = sp_invoke_external_rest_endpoint
-    @url = 'https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>?api-version=2023-03-15-preview',
+    @url = 'https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>/embeddings?api-version=2023-03-15-preview',
     @method = 'POST',
     @credential = [https://<your-app-name>.openai.azure.com],
     @payload = @payload,
