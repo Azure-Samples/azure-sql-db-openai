@@ -106,3 +106,7 @@ thanks to columnstore, even on small SKU, the performance can be pretty fast, we
 Azure SQL database, and by extension SQL Server, already has a great support for vector operations thanks to columnstore and its usage of [SIMD](https://en.wikipedia.org/wiki/Single_instruction,_multiple_data) [AVX-512 instructions](https://www.intel.com/content/www/us/en/architecture-and-technology/avx-512-overview.html). 
 
 A vector is nothing more than a list numbers (in this scope) and list of numbers can be perfectly stored in a column and even better in a columnstore index. You can start to take advantange of optimized vectors operations right now, directly in Azure SQL database, taking also advantage of all other features that it offers to developers.
+
+## Community Samples
+
+[Use a Poor Developers Vector Database to Implement The RAG Pattern](https://blazorhelpwebsite.com/ViewBlogPost/5066)
