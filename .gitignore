@@ -401,3 +401,4 @@ FodyWeavers.xsd
 *.local.txt
 *.local.sql
 .venv/
+.env
