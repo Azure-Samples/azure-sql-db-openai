@@ -53,10 +53,10 @@ go
 */
 create clustered columnstore index ixc 
 on dbo.wikipedia_articles_embeddings_titles_vector 
-order (article_id);
+order (article_id)
 go
 
 create clustered columnstore index ixc 
 on dbo.wikipedia_articles_embeddings_contents_vector 
-order (article_id);
+order (article_id)
 go

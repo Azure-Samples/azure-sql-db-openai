@@ -1,30 +1,16 @@
 /*
-    Create database credentials to store API key
-*/
-if exists(select * from sys.[database_scoped_credentials] where name = 'https://<your-app-name>.openai.azure.com')
-begin
-	drop database scoped credential [https://<your-app-name>.openai.azure.com];
-end
-create database scoped credential [https://<your-app-name>.openai.azure.com]
-with identity = 'HTTPEndpointHeaders', secret = '{"api-key": "<api-key>"}';
-go
-
-/*
     Get the embeddings for the input text by calling the OpenAI API
 */
 declare @inputText nvarchar(max) = 'the foundation series by isaac asimov';
 declare @retval int, @response nvarchar(max);
-declare @payload nvarchar(max) = json_object('input': @inputText);
-exec @retval = sp_invoke_external_rest_endpoint
-    @url = 'https://<your-app-name>.openai.azure.com/openai/deployments/<deployment-id>?api-version=2023-03-15-preview',
-    @method = 'POST',
-    @credential = [https://<your-app-name>.openai.azure.com],
-    @payload = @payload,
-    @response = @response output;
+
+exec @retval = dbo.get_embedding 'embeddings', @inputText, @response output;
+
 drop table if exists #response;
 select @response as [response] into #response;
 select * from #response;
 go
+
 
 /*
     Extract the title vectors from the JSON and store them in a table
@@ -81,7 +67,7 @@ go
 
 /* 
     Optimization: since vectors are normalized (as per OpenAI documentation: https://platform.openai.com/docs/guides/embeddings/which-distance-function-should-i-use),
-    we can simplify the cosine distance calculation by removing magnitude calculation
+    we can simplify the cosine distance calculation to a dot product
 */
 drop table if exists #results;
 select top(50)

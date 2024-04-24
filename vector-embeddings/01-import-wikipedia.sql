@@ -82,4 +82,8 @@ go
 select top (100) * from [dbo].[wikipedia_articles_embeddings]
 go
 
+select * from [dbo].[wikipedia_articles_embeddings] where title = 'Alan Turing'
+go
+
+
 
