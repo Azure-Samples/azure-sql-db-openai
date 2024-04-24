@@ -23,9 +23,9 @@ Azure SQL database can be used to significatly speed up vectors operations using
 
 ## Download and import the Wikipedia Article with Vector Embeddings
 
-Download the [wikipedia embeedings from here](https://cdn.openai.com/API/examples/data/vector_database_wikipedia_articles_embedded.zip), unzip it and upload it (using [Azure Storage Explorer](https://learn.microsoft.com/azure/vs-azure-tools-storage-manage-with-storage-explorer?tabs=windows) for example) to an Azure Blob Storage container.
+Download the [wikipedia embeddings from here](https://cdn.openai.com/API/examples/data/vector_database_wikipedia_articles_embedded.zip), unzip it and upload it (using [Azure Storage Explorer](https://learn.microsoft.com/azure/vs-azure-tools-storage-manage-with-storage-explorer?tabs=windows) for example) to an Azure Blob Storage container.
 
-In the example the unzipped csv file to `vector_database_wikipedia_articles_embedded.csv` is assumed to be uploaded to a blob container name `playground` and in a folder named `wikipedia`.
+In the example the unzipped csv file `vector_database_wikipedia_articles_embedded.csv` is assumed to be uploaded to a blob container name `playground` and in a folder named `wikipedia`.
 
 Once the file is uploaded, get the [SAS token](https://learn.microsoft.com/azure/storage/common/storage-sas-overview) to allow Azure SQL database to access it. (From Azure storage Explorer, right click on the `playground` container and than select `Get Shared Access Signature`. Set the expiration date to some time in future and then click on "Create". Copy the generated query string somewhere, for example into the Notepad, as it will be needed later)
 
@@ -36,7 +36,7 @@ Make sure to replace the `<account>` and `<sas-token>` placeholders with the val
 - `<account>` is the name of the storage account where the CSV file has been uploaded
 - `<sas-token>` is the Share Access Signature obtained before
 
-Run each section (each section starts with a comment) separately. At the end of the process (will take a few minutes) you will have all the CSV data imported in the `wikipedia_articles_embeddings` table.
+Run each section (each section starts with a comment) separately. At the end of the process (will take up to a couple of minutes) you will have all the CSV data imported in the `wikipedia_articles_embeddings` table.
 
 ## Create Vectors Table
 
@@ -139,3 +139,7 @@ Make sure to setup the database for this sample using the `./python/00-setup-dat
 Azure SQL database, and by extension SQL Server, already has a great support for vector operations thanks to columnstore and its usage of [SIMD](https://en.wikipedia.org/wiki/Single_instruction,_multiple_data) [AVX-512 instructions](https://www.intel.com/content/www/us/en/architecture-and-technology/avx-512-overview.html). 
 
 A vector is nothing more than a list numbers (in this scope) and list of numbers can be perfectly stored in a column and even better in a columnstore index. You can start to take advantange of optimized vectors operations right now, directly in Azure SQL database, taking also advantage of all other features that it offers to developers.
+
+## Community Samples
+
+[Use a Poor Developers Vector Database to Implement The RAG Pattern](https://blazorhelpwebsite.com/ViewBlogPost/5066)

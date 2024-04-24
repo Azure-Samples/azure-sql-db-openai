@@ -402,3 +402,4 @@ FodyWeavers.xsd
 *.local.sql
 .venv/
 .env
+__pycache__/

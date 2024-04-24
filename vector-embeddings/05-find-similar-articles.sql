@@ -1,10 +1,11 @@
 /*
     Get the embeddings for the input text by calling the OpenAI API
+    Note: <deployment-id> needs to be replaced with the deployment name of your embedding model in Azure OpenAI
 */
 declare @inputText nvarchar(max) = 'the foundation series by isaac asimov';
 declare @retval int, @response nvarchar(max);
 
-exec @retval = dbo.get_embedding 'embeddings', @inputText, @response output;
+exec @retval = dbo.get_embedding '<deployment-id>', @inputText, @response output;
 
 drop table if exists #response;
 select @response as [response] into #response;
