@@ -57,8 +57,6 @@ The script `./vector-embeddings/02-create-vectors-table.sql` does exactly that. 
 
 ## Find similar articles by calculating cosine distance
 
-The third script `./vector-embeddings/03-find-similar-articles.sql` starts invoking OpenAI to get the vector embeddings of an arbitrary text. 
-
 Make sure to have an Azure OpenAI [embeddings model](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models#embeddings-models) deployed and make sure it is using the `text-embedding-ada-002` model.
 
 Once the Azure OpenAI model is deployed, it can be called from Azure SQL database using [sp_invoke_external_rest_endpoint](https://learn.microsoft.com/sql/relational-databases/system-stored-procedures/sp-invoke-external-rest-endpoint-transact-sql), to get the embedding vector for the "the foundation series by isaac asimov", text, for example, using the following code (make sure to replace the `<your-api-name>` and `<api-key>` with yout Azure OpenAI deployment):
@@ -100,6 +98,41 @@ SUM(v1.[vector_value] * v2.[vector_value]) /
 ```
 
 thanks to columnstore, even on small SKU, the performance can be pretty fast, well within the sub-second goal.
+
+## Encapsulating logic to retrieve embeddings
+
+The described process can be wrapped into stored procedures to make it easy to re-use it. The scripts in the `./vector-embeddings/` show how to create a stored procedure to retrieve the embeddings from OpenAI:
+
+- `03-store-openai-credentials.sql`: stores the Azure OpenAI credentials in the Azure SQL database
+- `04-create-get-embeddings-procedure.sql`: create a stored procedure to encapsulate the call to OpenAI using the script. 
+
+## Finding similar articles
+
+The script `05-find-similar-articles.sql` uses the created stored procedure and the process explained above to find similar articles to the provided text. 
+
+## Encapsulating logic to do similarity saerch
+
+To make it even easier to use, the script `06-sample-function.sql` shows a sample function that can be used to find similar articles by just providing the text, as demonstrated in script `07-sample-function-usage` with the following example:
+
+```sql
+declare @e nvarchar(max);
+declare @text nvarchar(max) = N'the foundation series by isaac asimov';
+
+exec dbo.get_embedding 'embeddings', @text, @e output;
+
+select * from dbo.SimilarContentArticles(@e) as r order by cosine_distance desc
+```
+
+## Alternative sample with Python and a local embedding model
+
+If you don't want or can't use OpenAI to generate embeddings, you can use a local model like `https://huggingface.co/sentence-transformers/multi-qa-MiniLM-L6-cos-v1` to generate embeddings. The Python script `./python/hybrid_search.py` shows how to 
+
+- use Python to generate the embeddings 
+- do similarity search in Azure SQL database
+- use [Fulltext search in Azure SQL database with BM25 ranking](https://learn.microsoft.com/en-us/sql/relational-databases/search/limit-search-results-with-rank?view=sql-server-ver16#ranking-of-freetexttable)
+- do re-ranking applying Reciprocal Rank Fusion (RRF) to combine the BM25 ranking with the cosine similarity ranking
+
+Make sure to setup the database for this sample using the `./python/00-setup-database.sql` script. Database can be either an Azure SQL DB or a SQL Server database.
 
 ## Conclusions
 
