@@ -97,7 +97,7 @@ SUM(v1.[vector_value] * v2.[vector_value]) /
 )
 ```
 
-thanks to columnstore, even on small SKU, the performance can be pretty fast, well within the sub-second goal.
+thanks to columnstore, even on small SKU, the performance can be pretty fast, well within the sub-second goal. If you need to use other distance metric, you can find here a description of how to implement the most common one in pure T-SQL: [How to calculate common vectors distances in T-SQL](distance-calculations-in-tsql.md)
 
 ## Encapsulating logic to retrieve embeddings
 
@@ -110,7 +110,7 @@ The described process can be wrapped into stored procedures to make it easy to r
 
 The script `05-find-similar-articles.sql` uses the created stored procedure and the process explained above to find similar articles to the provided text. 
 
-## Encapsulating logic to do similarity saerch
+## Encapsulating logic to do similarity search
 
 To make it even easier to use, the script `06-sample-function.sql` shows a sample function that can be used to find similar articles by just providing the text, as demonstrated in script `07-sample-function-usage` with the following example:
 
@@ -142,4 +142,4 @@ A vector is nothing more than a list numbers (in this scope) and list of numbers
 
 ## Community Samples
 
-[Use a Poor Developers Vector Database to Implement The RAG Pattern](https://blazorhelpwebsite.com/ViewBlogPost/5066)
+[Implement The RAG Pattern](https://blazorhelpwebsite.com/ViewBlogPost/5066)
