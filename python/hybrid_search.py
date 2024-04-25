@@ -19,34 +19,37 @@ if __name__ == '__main__':
     model = SentenceTransformer('multi-qa-MiniLM-L6-cos-v1')
     embeddings = model.encode(sentences)
 
+    conn = get_mssql_connection()
+
     print('Cleaning up the database...')
     try:
-        conn = get_mssql_connection()
-        conn.execute("DELETE FROM dbo.document_embeddings;")
-        conn.execute("DELETE FROM dbo.documents;")
-        conn.commit();        
+        cursor = conn.cursor()    
+        cursor.execute("DELETE FROM dbo.document_embeddings;")
+        cursor.execute("DELETE FROM dbo.documents;")
+        cursor.commit();        
     finally:
-        conn.close()
+        cursor.close()
 
     print('Saving documents and embeddings in the database...')    
     try:
-        conn = get_mssql_connection()
         cursor = conn.cursor()  
         
-        for content, embedding in zip(sentences, embeddings):
+        for id, (content, embedding) in enumerate(zip(sentences, embeddings)):
             cursor.execute(f"""
-                INSERT INTO dbo.documents (content, embedding) VALUES (?, ?);
-                INSERT INTO dbo.document_embeddings SELECT SCOPE_IDENTITY(), CAST([key] AS INT), CAST([value] AS FLOAT) FROM OPENJSON(?);
+                DECLARE @id INT = ?;
+                DECLARE @content NVARCHAR(MAX) = ?;
+                DECLARE @embedding NVARCHAR(MAX) = ?;
+                INSERT INTO dbo.documents (id, content, embedding) VALUES (@id, @content, @embedding);
+                INSERT INTO dbo.document_embeddings SELECT @id, CAST([key] AS INT), CAST([value] AS FLOAT) FROM OPENJSON(@embedding);
             """,
+            id,
             content, 
-            json.dumps(embedding.tolist()),
             json.dumps(embedding.tolist())
             )
 
-        cursor.close()
-        conn.commit()
+        cursor.commit()
     finally:
-        conn.close()
+        cursor.close()
 
     print('Searching for similar documents...')
     print('Getting embeddings...')    
@@ -56,7 +59,6 @@ if __name__ == '__main__':
     print('Querying database...')  
     k = 5  
     try:
-        conn = get_mssql_connection()
         cursor = conn.cursor()  
         
         results  = cursor.execute(f"""
@@ -95,9 +97,7 @@ if __name__ == '__main__':
         )
 
         for row in results:
-            print('document:', row[0], 'RRF score:', row[1])
+            print(f'Document: {row[0]} -> RRF score: {row[1]:0.4}')
 
-        cursor.close()
-        conn.commit()
     finally:
-        conn.close()
+        cursor.close()
