@@ -1,22 +1,72 @@
-DROP TABLE IF EXISTS dbo.document_embeddings
-DROP TABLE IF EXISTS dbo.documents
+drop table if exists dbo.document_embeddings
+drop table if exists dbo.documents
 go
 
-CREATE TABLE dbo.documents (id INT CONSTRAINT pk__documents PRIMARY KEY IDENTITY, content NVARCHAR(MAX), embedding NVARCHAR(MAX))
-CREATE TABLE dbo.document_embeddings (id INT REFERENCES dbo.documents(id), vector_value_id INT, vector_value FLOAT)
+create table dbo.documents
+(
+    id int constraint pk__documents primary key,
+    content nvarchar(max),
+    embedding nvarchar(max)
+)
+create table dbo.document_embeddings
+(
+    id int references dbo.documents(id),
+    vector_value_id int,
+    vector_value float
+)
 go
 
-CREATE CLUSTERED COLUMNSTORE INDEX csi__document_embeddings ON dbo.document_embeddings ORDER (id)
+create clustered columnstore index csi__document_embeddings 
+    on dbo.document_embeddings order (id)
 go
 
-IF NOT EXISTS(SELECT * FROM sys.fulltext_catalogs WHERE [name] = 'FullTextCatalog')
-BEGIN
-    CREATE FULLTEXT CATALOG [FullTextCatalog] AS DEFAULT;
-END
+if not exists(select * from sys.fulltext_catalogs where [name] = 'FullTextCatalog')
+begin
+    create fulltext catalog [FullTextCatalog] as default;
+end
 go
 
-CREATE FULLTEXT INDEX ON dbo.documents (content) KEY INDEX pk__documents;
+create fulltext index on dbo.documents (content) key index pk__documents;
 go
 
-ALTER FULLTEXT INDEX ON dbo.documents ENABLE; 
+alter fulltext index on dbo.documents enable; 
+go
+
+create or alter function dbo.similar_documents(@vector nvarchar(max))
+returns table
+as
+return 
+with cteVector as
+(
+    select
+        cast([key] as int) as [vector_value_id],
+        cast([value] as float) as [vector_value]
+    from
+        openjson(@vector)
+),
+cteSimilar as
+(
+    select top (50)
+        v2.id,
+        1-sum(v1.[vector_value] * v2.[vector_value]) / 
+        (
+            sqrt(sum(v1.[vector_value] * v1.[vector_value])) 
+            * 
+            sqrt(sum(v2.[vector_value] * v2.[vector_value]))
+        ) as cosine_distance
+    from
+        cteVector v1
+    inner join
+        dbo.document_embeddings v2 on v1.vector_value_id = v2.vector_value_id
+    group by
+        v2.id
+    order by
+        cosine_distance
+)
+select
+    rank() over (order by r.cosine_distance) as rank,
+    r.id,
+    r.cosine_distance
+from
+    cteSimilar r
 go
