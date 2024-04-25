@@ -7,7 +7,6 @@ from azure import identity
 def get_mssql_connection():
     print('Getting MSSQL connection')
     mssql_connection_string = os.environ["MSSQL"]    
-    print(mssql_connection_string)
     if any(s in mssql_connection_string.lower() for s in ["uid"]):
         print(' - Using SQL Server authentication')
         attrs_before = None
