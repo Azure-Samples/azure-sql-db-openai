@@ -17,9 +17,19 @@ This example shows how to use Azure OpenAI from Azure SQL database to get the ve
 
 For an introduction on text and code embeddings, check out this OpenAI article: [Introducing text and code embeddings](https://openai.com/blog/introducing-text-and-code-embeddings).
 
-Azure SQL database can be used to significatly speed up vectors operations using column store indexes, so that search can have sub-seconds performances even on large datasets.
+Azure SQL database can be used to easily and quickly perform vector similarity search. There are two options for this: a native option and a classic option.
 
-![](_assets/azure-sql-cosine-similarity.gif)
+The **native option** is to use the new Vector Functions, recently introduced in Azure SQL database. Vector Functions are a set of functions that can be used to perform vector operations directly in the database. 
+
+> [!NOTE]  
+> Vector Functions are in Early Adopter Preview.
+
+![](_assets/azure-sql-cosine-similarity-native.gif)
+
+The **classic option** is to use the classic T-SQL to perform vector operations, with the support for columnstore indexes for getting good performances.
+
+> [!IMPORTANT]  
+> This branch (the `main` branch) uses the native vector support in Azure SQL. If you want to use the classic T-SQL, switch to the `classic` branch.
 
 ## Download and import the Wikipedia Article with Vector Embeddings
 
