@@ -4,7 +4,7 @@
 create or alter procedure dbo.get_embedding
 @deployedModelName nvarchar(1000),
 @inputText nvarchar(max),
-@embedding nvarchar(max) output
+@embedding varbinary(8000) output
 as
 declare @retval int, @response nvarchar(max);
 declare @payload nvarchar(max) = json_object('input': @inputText);
@@ -16,12 +16,14 @@ exec @retval = sp_invoke_external_rest_endpoint
     @payload = @payload,
     @response = @response output;
 
-declare @re nvarchar(max) = '[]';
+declare @re nvarchar(max) = null;
 if (@retval = 0) begin
     set @re = json_query(@response, '$.result.data[0].embedding')
+end else begin
+    select @response as 'Error message from OpenAI API';
 end
 
-set @embedding = @re;
+set @embedding = json_array_to_vector(@re);
 
 return @retval
 go
