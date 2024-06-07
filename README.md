@@ -22,7 +22,7 @@ Azure SQL database can be used to easily and quickly perform vector similarity s
 The **native option** is to use the new Vector Functions, recently introduced in Azure SQL database. Vector Functions are a set of functions that can be used to perform vector operations directly in the database. 
 
 > [!NOTE]  
-> Vector Functions are in Early Adopter Preview.
+> Vector Functions are in Early Adopter Preview. Get access to the preview via https://aka.ms/azuresql-vector-eap-announcement
 
 ![](_assets/azure-sql-cosine-similarity-native.gif)
 
@@ -48,22 +48,21 @@ Make sure to replace the `<account>` and `<sas-token>` placeholders with the val
 
 Run each section (each section starts with a comment) separately. At the end of the process (will take up to a couple of minutes) you will have all the CSV data imported in the `wikipedia_articles_embeddings` table.
 
-## Create Vectors Table
+## Add embeddings columns to table
 
-In the imported data, vectors are stored as JSON arrays. To take advtange of vector processing, the arrays must be saved into a columnstore index. Thanks to `OPENJSON`, turning a vector into a set of values that can be saved into a column is very easy:
+In the imported data, vectors are stored as JSON arrays. To take advtange of vector processing, the arrays must be saved into more compact and optimzed binary format index. Thanks to `JSON_ARRAY_TO_VECTOR`, turning a vector into a set of values that can be saved into a column is very easy:
 
 ```sql
- select 
-    v.id as article_id,    
-    cast(tv.[key] as int) as vector_value_id,
-    cast(tv.[value] as float) as vector_value   
-from 
-    [dbo].[wikipedia_articles_embeddings] as v
-cross apply 
-    openjson(title_vector) tv
+alter table wikipedia_articles_embeddings
+add title_vector_native varbinary(8000);
+
+update 
+    wikipedia_articles_embeddings
+set 
+    title_vector_native = json_array_to_vector(title_vector),
 ```
 
-The script `./vector-embeddings/02-create-vectors-table.sql` does exactly that. It creates two tables, one for the title embeddings and one for the content embeddings, and the creates a clustered columnstore on those tables to enable efficient vector processing.
+The script `./vector-embeddings/02-use-native-vectors.sql` does exactly that. It takes the existing columns with vectors stored in JSON arrays and turns them into vectors saved in binary format.
 
 ## Find similar articles by calculating cosine distance
 
@@ -84,30 +83,17 @@ exec @retval = sp_invoke_external_rest_endpoint
 select @response;
 ```
 
-The response can be turned into a table using the `OPENJSON` function again:
+The vector returned in the response can extrated using `json_query`:
 
 ```sql
-select 
-    cast([key] as int) as [vector_value_id],
-    cast([value] as float) as [vector_value]
-into    
-    #t
-from 
-    openjson(@response, '$.result.data[0].embedding')
+set @re = json_query(@response, '$.result.data[0].embedding')
 ```
 
 Now is just a matter of taking the vector of the sample text and the vectors of all wikipedia articles and calculate the cosine similarity. The math can be easily expressed in T-SQL:
 
 ```sql
-SUM(v1.[vector_value] * v2.[vector_value]) / 
-(
-    SQRT(SUM(v1.[vector_value] * v1.[vector_value])) 
-    * 
-    SQRT(SUM(v2.[vector_value] * v2.[vector_value]))
-)
+vector_distance('cosine', @embedding, title_vector) 
 ```
-
-thanks to columnstore, even on small SKU, the performance can be pretty fast, well within the sub-second goal. If you need to use other distance metric, you can find here a description of how to implement the most common one in pure T-SQL: [How to calculate common vectors distances in T-SQL](distance-calculations-in-tsql.md)
 
 ## Encapsulating logic to retrieve embeddings
 
@@ -125,12 +111,20 @@ The script `05-find-similar-articles.sql` uses the created stored procedure and 
 To make it even easier to use, the script `06-sample-function.sql` shows a sample function that can be used to find similar articles by just providing the text, as demonstrated in script `07-sample-function-usage` with the following example:
 
 ```sql
-declare @e nvarchar(max);
+declare @embedding varbinary(8000);
 declare @text nvarchar(max) = N'the foundation series by isaac asimov';
 
-exec dbo.get_embedding 'embeddings', @text, @e output;
+exec dbo.get_embedding 'embeddings', @text, embedding output;
 
-select * from dbo.SimilarContentArticles(@e) as r order by cosine_distance desc
+select top(10)
+    a.id,
+    a.title,
+    a.url,
+    vector_distance('cosine', @embedding, title_vector_ada2) cosine_distance
+from
+    dbo.wikipedia_articles_embeddings a
+order by
+    cosine_distance;
 ```
 
 ## Alternative sample with Python and a local embedding model
@@ -146,10 +140,12 @@ Make sure to setup the database for this sample using the `./python/00-setup-dat
 
 ## Conclusions
 
-Azure SQL database, and by extension SQL Server, already has a great support for vector operations thanks to columnstore and its usage of [SIMD](https://en.wikipedia.org/wiki/Single_instruction,_multiple_data) [AVX-512 instructions](https://www.intel.com/content/www/us/en/architecture-and-technology/avx-512-overview.html). 
+Azure SQL database, has now support to perform vector operations directly in the database, making it easy to perform vector similarity search. Using vector search along with fulltext search and BM25 ranking, it is possible to build powerful search engines that can be used in a variety of scenarios. 
 
-A vector is nothing more than a list numbers (in this scope) and list of numbers can be perfectly stored in a column and even better in a columnstore index. You can start to take advantange of optimized vectors operations right now, directly in Azure SQL database, taking also advantage of all other features that it offers to developers.
+> [!NOTE]  
+> Vector Functions are in Early Adopter Preview. Get access to the preview via https://aka.ms/azuresql-vector-eap-announcement
 
-## Community Samples
+## More resources
 
-[Implement The RAG Pattern](https://blazorhelpwebsite.com/ViewBlogPost/5066)
+- [Azure SQL & AI](https://aka.ms/sql-ai)
+- [Azure SQL Vector Samples](https://github.com/Azure-Samples/azure-sql-db-vector-search)
