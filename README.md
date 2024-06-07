@@ -120,7 +120,7 @@ select top(10)
     a.id,
     a.title,
     a.url,
-    vector_distance('cosine', @embedding, title_vector_ada2) cosine_distance
+    vector_distance('cosine', @embedding, title_vector) cosine_distance
 from
     dbo.wikipedia_articles_embeddings a
 order by
