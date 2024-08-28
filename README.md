@@ -17,6 +17,8 @@ This example shows how to use Azure OpenAI from Azure SQL database to get the ve
 
 For an introduction on text and code embeddings, check out this OpenAI article: [Introducing text and code embeddings](https://openai.com/blog/introducing-text-and-code-embeddings).
 
+## Native or Classic?
+
 Azure SQL database can be used to easily and quickly perform vector similarity search. There are two options for this: a native option and a classic option.
 
 The **native option** is to use the new Vector Functions, recently introduced in Azure SQL database. Vector Functions are a set of functions that can be used to perform vector operations directly in the database. 
