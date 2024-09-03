@@ -1,4 +1,5 @@
 import os
+import time
 import pyodbc
 import logging
 import json
@@ -10,14 +11,21 @@ load_dotenv()
 
 if __name__ == '__main__':
     print('Initializing sample...')
+    model = SentenceTransformer('multi-qa-MiniLM-L6-cos-v1', tokenizer_kwargs={'clean_up_tokenization_spaces': True})
+
     print('Getting embeddings...')    
     sentences = [
         'The dog is barking',
         'The cat is purring',
         'The bear is growling',
-        'A bear growling to a cat'
+        'A bear growling to a cat',
+        'A cat purring to a dog',
+        'A dog barking to a bear',
+        'A bear growling to a dog',
+        'A cat purring to a bear',
+        'A wolf howling to a bear',
+        'A bear growling to a wolf'
     ]
-    model = SentenceTransformer('multi-qa-MiniLM-L6-cos-v1')
     embeddings = model.encode(sentences)
 
     conn = get_mssql_connection()
@@ -25,7 +33,7 @@ if __name__ == '__main__':
     print('Cleaning up the database...')
     try:
         cursor = conn.cursor()    
-        cursor.execute("DELETE FROM dbo.sample_documents;")
+        cursor.execute("DELETE FROM dbo.hybrid_search_sample;")
         cursor.commit();        
     finally:
         cursor.close()
@@ -34,15 +42,15 @@ if __name__ == '__main__':
     try:
         cursor = conn.cursor()  
         
-        for id, (content, embedding) in enumerate(zip(sentences, embeddings)):
+        for id, (sentence, embedding) in enumerate(zip(sentences, embeddings)):
             cursor.execute(f"""
                 DECLARE @id INT = ?;
                 DECLARE @content NVARCHAR(MAX) = ?;
-                DECLARE @embedding NVARCHAR(MAX) = ?;
-                INSERT INTO dbo.sample_documents (id, content, embedding) VALUES (@id, @content, JSON_ARRAY_TO_VECTOR(@embedding));
+                DECLARE @embedding VECTOR(384) = CAST(? AS VECTOR(384));
+                INSERT INTO dbo.hybrid_search_sample (id, content, embedding) VALUES (@id, @content, @embedding);
             """,
             id,
-            content, 
+            sentence, 
             json.dumps(embedding.tolist())
             )
 
@@ -50,20 +58,23 @@ if __name__ == '__main__':
     finally:
         cursor.close()
 
+    print('Waiting a few seconds to let fulltext index sync...')    
+    time.sleep(3)
+
     print('Searching for similar documents...')
     print('Getting embeddings...')    
     query = 'a growling bear'
     embedding = model.encode(query)    
     
-    print(f'Querying database for "{query}"...')  
     k = 5  
+    print(f'Querying database for {k} similar sentenct to "{query}"...')  
     try:
         cursor = conn.cursor()  
         
         results  = cursor.execute(f"""
             DECLARE @k INT = ?;
             DECLARE @q NVARCHAR(4000) = ?;
-            DECLARE @e VARBINARY(8000) = JSON_ARRAY_TO_VECTOR(CAST(? AS NVARCHAR(MAX)));
+            DECLARE @e VECTOR(384) = CAST(? AS VECTOR(384));
             WITH keyword_search AS (
                 SELECT TOP(@k)
                     id,
@@ -76,9 +87,9 @@ if __name__ == '__main__':
                             ftt.[RANK] AS rank,
                             sd.content
                         FROM 
-                            dbo.sample_documents AS sd
+                            dbo.hybrid_search_sample AS sd
                         INNER JOIN 
-                            FREETEXTTABLE(dbo.sample_documents, *, @q) AS ftt ON sd.id = ftt.[KEY]
+                            FREETEXTTABLE(dbo.hybrid_search_sample, *, @q) AS ftt ON sd.id = ftt.[KEY]
                     ) AS t
                 ORDER BY
                     rank
@@ -96,7 +107,7 @@ if __name__ == '__main__':
                             VECTOR_DISTANCE('cosine', embedding, @e) AS distance,
                             content
                         FROM 
-                            dbo.sample_documents
+                            dbo.hybrid_search_sample
                         ORDER BY
                             distance
                     ) AS t
@@ -122,8 +133,10 @@ if __name__ == '__main__':
             json.dumps(embedding.tolist()),        
         )
 
-        for row in results:
-            print(f'Document: "{row[2]}", Id: {row[0]} -> RRF score: {row[1]:0.4} (Semantic Rank: {row[3]}, Keyword Rank: {row[4]})')
+        for (pos, row) in enumerate(results):
+            print(f'[{pos}] RRF score: {row[1]:0.4} (Semantic Rank: {row[3]}, Keyword Rank: {row[4]})\tDocument: "{row[2]}", Id: {row[0]}')
 
     finally:
         cursor.close()
+    
+    print("Done.")

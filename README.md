@@ -24,7 +24,7 @@ The **native option** is to use the new Vector Functions, recently introduced in
 > [!NOTE]  
 > Vector Functions are in Early Adopter Preview. Get access to the preview via https://aka.ms/azuresql-vector-eap-announcement
 
-![](_assets/azure-sql-cosine-similarity-native.gif)
+![](_assets/azure-sql-cosine-similarity-vector-type.gif)
 
 The **classic option** is to use the classic T-SQL to perform vector operations, with the support for columnstore indexes for getting good performances.
 
@@ -50,16 +50,16 @@ Run each section (each section starts with a comment) separately. At the end of 
 
 ## Add embeddings columns to table
 
-In the imported data, vectors are stored as JSON arrays. To take advtange of vector processing, the arrays must be saved into more compact and optimzed binary format index. Thanks to `JSON_ARRAY_TO_VECTOR`, turning a vector into a set of values that can be saved into a column is very easy:
+In the imported data, vectors are stored as JSON arrays. To take advtange of vector processing, the arrays must be saved into more compact and optimzed binary format index. Thanks to the new `VECTOR` type, turning a vector into a set of values that can be saved into a column is very easy:
 
 ```sql
 alter table wikipedia_articles_embeddings
-add title_vector_native varbinary(8000);
+add title_vector_ada2 vector(1536);
 
 update 
     wikipedia_articles_embeddings
 set 
-    title_vector_native = json_array_to_vector(title_vector),
+    title_vector_ada2 = cast(title_vector as vector(1536)),
 ```
 
 The script `./vector-embeddings/02-use-native-vectors.sql` does exactly that. It takes the existing columns with vectors stored in JSON arrays and turns them into vectors saved in binary format.
@@ -105,27 +105,6 @@ The described process can be wrapped into stored procedures to make it easy to r
 ## Finding similar articles
 
 The script `05-find-similar-articles.sql` uses the created stored procedure and the process explained above to find similar articles to the provided text. 
-
-## Encapsulating logic to do similarity search
-
-To make it even easier to use, the script `06-sample-function.sql` shows a sample function that can be used to find similar articles by just providing the text, as demonstrated in script `07-sample-function-usage` with the following example:
-
-```sql
-declare @embedding varbinary(8000);
-declare @text nvarchar(max) = N'the foundation series by isaac asimov';
-
-exec dbo.get_embedding 'embeddings', @text, embedding output;
-
-select top(10)
-    a.id,
-    a.title,
-    a.url,
-    vector_distance('cosine', @embedding, title_vector) cosine_distance
-from
-    dbo.wikipedia_articles_embeddings a
-order by
-    cosine_distance;
-```
 
 ## Alternative sample with Python and a local embedding model
 

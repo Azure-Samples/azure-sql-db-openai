@@ -2,7 +2,7 @@
 
 This sample shows how to combine Fulltext search in Azure SQL database with BM25 ranking and cosine similarity ranking to do hybrid search.
 
-In this sample the local model [multi-qa-MiniLM-L6-cos-v1](https://huggingface.co/sentence-transformers/multi-qa-MiniLM-L6-cos-v1) to generate embeddings. The Python script `./python/hybrid_search.py` shows how to 
+In this sample the local model [multi-qa-MiniLM-L6-cos-v1](https://huggingface.co/sentence-transformers/multi-qa-MiniLM-L6-cos-v1) to generate embeddings. The Python script `./hybrid_search.py` shows how to 
 
 - use Python to generate the embeddings 
 - do similarity search in Azure SQL database
