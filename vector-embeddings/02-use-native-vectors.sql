@@ -2,10 +2,11 @@
     Add columns to store the native vectors
 */
 alter table wikipedia_articles_embeddings
-add title_vector_native varbinary(8000);
+add title_vector_ada2 vector(1536);
 
 alter table wikipedia_articles_embeddings
-add content_vector_native varbinary(8000);
+add content_vector_ada2 vector(1536);
+go
 
 /*
     Update the native vectors
@@ -13,8 +14,8 @@ add content_vector_native varbinary(8000);
 update 
     wikipedia_articles_embeddings
 set 
-    title_vector_native = json_array_to_vector(title_vector),
-    content_vector_native = json_array_to_vector(content_vector);
+    title_vector_ada2 = cast(title_vector as vector(1536)),
+    content_vector_ada2 = cast(content_vector as vector(1536))
 go
 
 /*
@@ -29,15 +30,9 @@ drop column content_vector;
 go
 
 /*
-    Rename the columns
-*/
-EXEC sp_rename 'dbo.wikipedia_articles_embeddings.title_vector_native', 'title_vector_ada2', 'COLUMN';
-EXEC sp_rename 'dbo.wikipedia_articles_embeddings.content_vector_native', 'content_vector_ada2', 'COLUMN';
-
-/*
 	Verify data
 */
-select top (100) * from [dbo].[wikipedia_articles_embeddings]
+select top (10) * from [dbo].[wikipedia_articles_embeddings]
 go
 
 select * from [dbo].[wikipedia_articles_embeddings] where title = 'Alan Turing'

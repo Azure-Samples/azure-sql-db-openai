@@ -5,7 +5,7 @@
 */
 
 declare @inputText nvarchar(max) = 'the foundation series by isaac asimov';
-declare @retval int, @embedding varbinary(8000);
+declare @retval int, @embedding vector(1536);
 
 exec @retval = dbo.get_embedding '<deployment-id>', @inputText, @embedding output;
 

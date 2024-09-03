@@ -4,7 +4,7 @@
 create or alter procedure dbo.get_embedding
 @deployedModelName nvarchar(1000),
 @inputText nvarchar(max),
-@embedding varbinary(8000) output
+@embedding vector(1536) output
 as
 declare @retval int, @response nvarchar(max);
 declare @payload nvarchar(max) = json_object('input': @inputText);
@@ -23,7 +23,7 @@ end else begin
     select @response as 'Error message from OpenAI API';
 end
 
-set @embedding = json_array_to_vector(@re);
+set @embedding = cast(@re as vector(1536));
 
 return @retval
 go
