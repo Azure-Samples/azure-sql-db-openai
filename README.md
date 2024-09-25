@@ -28,7 +28,7 @@ The **native option** is to use the new Vector Functions, recently introduced in
 
 ![](_assets/azure-sql-cosine-similarity-vector-type.gif)
 
-The **classic option** is to use the classic T-SQL to perform vector operations, with the support for columnstore indexes for getting good performances.
+The **classic option** is to use the classic T-SQL to perform vector operations, with the support of columnstore indexes for getting good performance.
 
 > [!IMPORTANT]  
 > This branch (the `main` branch) uses the native vector support in Azure SQL. If you want to use the classic T-SQL, switch to the `classic` branch.
