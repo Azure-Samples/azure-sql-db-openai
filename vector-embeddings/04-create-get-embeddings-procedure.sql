@@ -8,7 +8,7 @@ create or alter procedure dbo.get_embedding
 as
 declare @retval int, @response nvarchar(max);
 declare @payload nvarchar(max) = json_object('input': @inputText);
-declare @url nvarchar(1000) = 'https://<your-api-name>.openai.azure.com/openai/deployments/' + @deployedModelName + '/embeddings?api-version=2023-03-15-preview'
+declare @url nvarchar(1000) = 'https://<your-api-name>.openai.azure.com/openai/deployments/' + @deployedModelName + '/embeddings?api-version=2024-08-01-preview'
 exec @retval = sp_invoke_external_rest_endpoint
     @url = @url,
     @method = 'POST',
