@@ -90,6 +90,8 @@ if __name__ == '__main__':
                             dbo.hybrid_search_sample AS sd
                         INNER JOIN 
                             FREETEXTTABLE(dbo.hybrid_search_sample, *, @q) AS ftt ON sd.id = ftt.[KEY]
+                        ORDER BY
+                            rank DESC
                     ) AS t
                 ORDER BY
                     rank
