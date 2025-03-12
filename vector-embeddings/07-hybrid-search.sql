@@ -42,11 +42,13 @@ semantic_search AS
         RANK() OVER (ORDER BY cosine_distance) AS rank
     FROM
         (
-            SELECT 
+            SELECT TOP(@k)
                 id, 
                 VECTOR_DISTANCE('cosine', @e, content_vector_ada2) AS cosine_distance
             FROM 
                 dbo.wikipedia_articles_embeddings w
+            ORDER BY
+                cosine_distance
         ) AS similar_documents
 ),
 result AS (
