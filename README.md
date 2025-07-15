@@ -23,9 +23,6 @@ Azure SQL database can be used to easily and quickly perform vector similarity s
 
 The **native option** is to use the new Vector Functions, recently introduced in Azure SQL database. Vector Functions are a set of functions that can be used to perform vector operations directly in the database. 
 
-> [!NOTE]  
-> Vector Functions are in Public Preview. Learn the details about vectors in Azure SQL here: https://aka.ms/azure-sql-vector-public-preview
-
 ![](_assets/azure-sql-cosine-similarity-vector-type.gif)
 
 The **classic option** is to use the classic T-SQL to perform vector operations, with the support of columnstore indexes for getting good performance.
@@ -41,7 +38,7 @@ In the example the unzipped CSV file `vector_database_wikipedia_articles_embedde
 
 Once the file is uploaded, get the [SAS token](https://learn.microsoft.com/azure/storage/common/storage-sas-overview) to allow Azure SQL database to access it. (From Azure storage Explorer, right click on the `playground` container and then select `Get Shared Access Signature`. Set the expiration date to some time in future and then click on "Create". Copy the generated query string somewhere, for example into Notepad, as it will be needed later)
 
-Use a client tool like [Azure Data Studio](https://azure.microsoft.com/products/data-studio/) to connect to an Azure SQL database and then use the `./vector-embeddings/01-import-wikipedia.sql` to create the `wikipedia_articles_embeddings` table where the uploaded CSV file will be imported.
+Use a client tool like [VS Code MSSQL Extension](https://github.com/microsoft/vscode-mssql) to connect to an Azure SQL database and then use the `./vector-embeddings/01-import-wikipedia.sql` to create the `wikipedia_articles_embeddings` table where the uploaded CSV file will be imported.
 
 Make sure to replace the `<account>` and `<sas-token>` placeholders with the value correct for your environment:
 
@@ -52,7 +49,7 @@ Run each section (each section starts with a comment) separately. At the end of 
 
 ## Add embeddings columns to table
 
-In the imported data, vectors are stored as JSON arrays. To take advtange of vector processing, the arrays must be saved into a more compact and optimized binary format index. Thanks to the new `VECTOR` type, turning a vector into a set of values that can be saved into a column is very easy:
+In the imported data, vectors are stored as JSON arrays. To take advtange of vector processing, the arrays must be saved into a more compact and optimized binary format index. Thanks to the [new `VECTOR` type](https://learn.microsoft.com/en-us/sql/t-sql/data-types/vector-data-type?view=sql-server-ver17&tabs=csharp), turning a vector into a set of values that can be saved into a column is very easy:
 
 ```sql
 alter table wikipedia_articles_embeddings
@@ -123,10 +120,10 @@ Make sure to setup the database for this sample using the `./python/00-setup-dat
 
 Azure SQL database, now has support to perform vector operations directly in the database, making it easy to perform vector similarity search. Using vector search along with fulltext search and BM25 ranking, it is possible to build powerful search engines that can be used in a variety of scenarios. 
 
-> [!NOTE]  
-> Vector Functions are in Early Adopter Preview. Get access to the preview via https://aka.ms/azuresql-vector-eap-announcement
+Learn everything about vector search in Azure SQL and SQL server database here: https://learn.microsoft.com/t-sql/data-types/vector-data-type?view=sql-server-ver17&tabs=csharp.
 
 ## More resources
 
 - [Azure SQL & AI](https://aka.ms/sql-ai)
 - [Azure SQL Vector Samples](https://github.com/Azure-Samples/azure-sql-db-vector-search)
+- [Vector Data Type](https://learn.microsoft.com/sql/t-sql/data-types/vector-data-type?view=sql-server-ver17&tabs=csharp)
