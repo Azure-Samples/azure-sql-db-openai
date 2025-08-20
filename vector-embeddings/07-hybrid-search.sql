@@ -10,7 +10,10 @@ DECLARE @k INT = 10
 DECLARE @r INT, @e VECTOR(1536);
 
 EXEC @r = dbo.get_embedding '<deployment-id>', @q, @e OUTPUT;
-IF (@r != 0) SELECT @r;
+IF (@r != 0) BEGIN 
+    SELECT @r; 
+    THROW 50000, 'Unable to get embedding', 1;
+END
 
 WITH keyword_search AS (
     SELECT TOP(@k)
