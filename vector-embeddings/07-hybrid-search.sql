@@ -1,19 +1,13 @@
 /*
     Get the embeddings for the input text by calling the OpenAI API
     and then search the most similar articles (by title)
-    Note: <deployment-id> needs to be replaced with the deployment name of your embedding model in Azure OpenAI
 */
 
 DECLARE @q NVARCHAR(1000) = 'the foundation series by isaac asimov';
-DECLARE @k INT = 10
+DECLARE @e VECTOR(1536);
+DECLARE @k INT = 10;
 
-DECLARE @r INT, @e VECTOR(1536);
-
-EXEC @r = dbo.get_embedding '<deployment-id>', @q, @e OUTPUT;
-IF (@r != 0) BEGIN 
-    SELECT @r; 
-    THROW 50000, 'Unable to get embedding', 1;
-END
+SET @e = AI_GENERATE_EMBEDDINGS(@q USE MODEL Ada2Embeddings);
 
 WITH keyword_search AS (
     SELECT TOP(@k)

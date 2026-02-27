@@ -1,19 +1,18 @@
 /*
     Get the embeddings for the input text by calling the OpenAI API
     and then search the most similar articles (by title)
-    Note: <deployment-id> needs to be replaced with the deployment name of your embedding model in Azure OpenAI
 */
 
 declare @inputText nvarchar(max) = 'the foundation series by isaac asimov';
-declare @retval int, @embedding vector(1536);
+declare @embedding vector(1536);
 
-exec @retval = dbo.get_embedding '<deployment-id>', @inputText, @embedding output;
+set @embedding = ai_generate_embeddings(@inputText use model Ada2Embeddings)
 
 select top(10)
     a.id,
     a.title,
     a.url,
-    vector_distance('cosine', @embedding, title_vector_ada2) cosine_distance
+    vector_distance('cosine', @embedding, title_vector_ada2) as cosine_distance
 from
     dbo.wikipedia_articles_embeddings a
 order by

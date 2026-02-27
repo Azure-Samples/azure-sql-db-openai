@@ -67,49 +67,24 @@ The script `./vector-embeddings/02-use-native-vectors.sql` does exactly that. It
 
 Make sure to have an Azure OpenAI [embeddings model](https://learn.microsoft.com/azure/cognitive-services/openai/concepts/models#embeddings-models) deployed and make sure it is using the `text-embedding-ada-002` model.
 
-Once the Azure OpenAI model is deployed, it can be called from Azure SQL database using [sp_invoke_external_rest_endpoint](https://learn.microsoft.com/sql/relational-databases/system-stored-procedures/sp-invoke-external-rest-endpoint-transact-sql), to get the embedding vector for the "the foundation series by isaac asimov", text, for example, using the following code (make sure to replace the `<your-api-name>` and `<api-key>` with yout Azure OpenAI deployment):
-
-```sql
-declare @inputText nvarchar(max) = 'the foundation series by isaac asimov';
-declare @retval int, @response nvarchar(max);
-declare @payload nvarchar(max) = json_object('input': @inputText);
-exec @retval = sp_invoke_external_rest_endpoint
-    @url = 'https://<your-api-name>.openai.azure.com/openai/deployments/<deployment-id>/embeddings?api-version=2023-03-15-preview',
-    @method = 'POST',
-    @headers = '{"api-key":"<api-key>"}',
-    @payload = @payload,
-    @response = @response output;
-select @response;
-```
-
-The vector returned in the response can extracted using `json_query`:
-
-```sql
-set @re = json_query(@response, '$.result.data[0].embedding')
-```
-
-Now it is just a matter of taking the vector of the sample text and the vectors of all wikipedia articles and calculating the cosine similarity. The math can be easily expressed in T-SQL:
-
-```sql
-vector_distance('cosine', @embedding, title_vector) 
-```
+Once the Azure OpenAI model is deployed, it can be called from Azure SQL database using [AI_GENERATE_EMBEDDINGS](https://learn.microsoft.com/sql/t-sql/functions/ai-generate-embeddings-transact-sql?view=sql-server-ver17&tabs=request-headers) function. This function takes a text as input and returns the corresponding vector embedding.
 
 ## Encapsulating logic to retrieve embeddings
 
 The described process can be wrapped into stored procedures to make it easy to re-use. The scripts in the `./vector-embeddings/` directory show how to create a stored procedure to retrieve the embeddings from OpenAI:
 
 - `03-store-openai-credentials.sql`: stores the Azure OpenAI credentials in the Azure SQL database
-- `04-create-get-embeddings-procedure.sql`: creates a stored procedure to encapsulate the call to OpenAI using the script. 
+- `04-create-external-model.sql`: set up the external model for calling OpenAI embedding model
 
 ## Finding similar articles
 
-The script `05-find-similar-articles.sql` uses the created stored procedure and the process explained above to find similar articles to the provided text. 
+The script `05-find-similar-articles.sql` uses the created stored procedure and the process explained above to find similar articles to the provided text.
 
 ## Alternative sample with Python and a local embedding model
 
 If you don't want to, or can't use OpenAI to generate embeddings, you can use a local model like `https://huggingface.co/sentence-transformers/multi-qa-MiniLM-L6-cos-v1` to generate embeddings. The Python script `./python/hybrid_search.py` shows how to 
 
-- use Python to generate the embeddings 
+- use Python to generate the embeddings
 - do similarity search in Azure SQL database
 - use [Fulltext search in Azure SQL database with BM25 ranking](https://learn.microsoft.com/en-us/sql/relational-databases/search/limit-search-results-with-rank?view=sql-server-ver16#ranking-of-freetexttable)
 - do re-ranking applying Reciprocal Rank Fusion (RRF) to combine the BM25 ranking with the cosine similarity ranking
